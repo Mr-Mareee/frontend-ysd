@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Container, Table } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSun, faCloud, faCloudRain, faSnowflake } from '@fortawesome/free-solid-svg-icons';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -20,6 +22,39 @@ const Home = () => {
     }
   };
 
+  const mapConditionToType = (conditionCode) => {
+    let icon = null;
+    let conditionString = '';
+  
+    switch (conditionCode) {
+      case '1':
+        icon = <FontAwesomeIcon icon={faSun} />;
+        conditionString = 'Sunny';
+        break;
+      case '2':
+        icon = <FontAwesomeIcon icon={faCloud} />;
+        conditionString = 'Cloudy';
+        break;
+      case '3':
+        icon = <FontAwesomeIcon icon={faCloudRain} />;
+        conditionString = 'Rainy';
+        break;
+      case '4':
+        icon = <FontAwesomeIcon icon={faSnowflake} />;
+        conditionString = 'Flurry';
+        break;
+      default:
+        icon = null;
+        conditionString = 'Unknown';
+    }
+
+    return (
+      <>
+        {icon} {conditionString}
+      </>
+    );
+  };
+
   useEffect(() => {
     const fetchRecords = async () => {
       try {
@@ -29,27 +64,43 @@ const Home = () => {
             Authorization: `Token ${token}`
           }
         };
-  
+        
         const response = await axios.get('http://localhost:8000/api/v1/records/', config);
         const fetchedRecords = response.data;
-        setRecords(fetchedRecords);
+        const updatedRecords = fetchedRecords.map(record => {
+          const options = {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric',
+            second: 'numeric',
+            hour12: false
+          };
+          const dataLeggibile = new Date(record.date).toLocaleString('it-IT', options);
+          const conditionType = mapConditionToType(record.condition);
+
+          return { ...record, date: dataLeggibile, condition: conditionType };
+        });
+        
+        setRecords(updatedRecords);
       } catch (error) {
         console.error('Errore durante il recupero dei record:', error);
       }
     };
-  
     fetchRecords();
   }, []);
-  
+
+  useEffect(() => {
+    document.title = 'Your Secure Weather | Home';
+  }, []);
 
   return (
     <React.Fragment>
       <Container className="py-5">
-        <h3 className="fw-normal">Welcome Home.</h3>
         <Table striped bordered hover>
           <thead>
             <tr>
-              <th>ID</th>
               <th>Condition</th>
               <th>Humidity</th>
               <th>Temperature</th>
@@ -60,7 +111,6 @@ const Home = () => {
           <tbody>
             {records.map((record) => (
               <tr key={record.id}>
-                <td>{record.id}</td>
                 <td>{record.condition}</td>
                 <td>{record.humidity}</td>
                 <td>{record.temperature}</td>
@@ -71,8 +121,7 @@ const Home = () => {
           </tbody>
         </Table>
       </Container>
-     <center><button onClick={logout}>Logout</button></center>
-
+      <center><button onClick={logout}>Logout</button></center>
     </React.Fragment>
   );
 };

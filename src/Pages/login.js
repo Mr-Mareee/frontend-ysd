@@ -42,6 +42,9 @@ const Login = () => {
         navigate('/'); // Reindirizza alla pagina "home" se è presente un token
       }
     }, [navigate]);
+    useEffect(() => {
+        document.title = 'Your Secure Weather | Login';
+      }, []);
     return (
         <React.Fragment>
             <Container className="my-5">
