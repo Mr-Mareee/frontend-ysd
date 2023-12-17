@@ -11,16 +11,24 @@ const Home = () => {
 
   const logoutURL = 'http://localhost:8000/api/v1/auth/logout/';
 
-  const logout = async () => {
+  async function logout() {
     try {
-      const response = await axios.post(logoutURL);
-      console.log('Logout successful:', response);
-      localStorage.clear();
-      navigate('/auth/login');
+      const token = localStorage.getItem('user-token');
+      const config = {
+        headers: {
+          Authorization: `Token ${token}`
+        }
+      };
+  
+      const response = await axios.post(logoutURL, {}, config);
+
+      localStorage.removeItem('user-token');
+      navigate("/auth/login");
+      
     } catch (error) {
       console.error('Errore durante il logout:', error);
     }
-  };
+  }
 
   const mapConditionToType = (conditionCode) => {
     let icon = null;
